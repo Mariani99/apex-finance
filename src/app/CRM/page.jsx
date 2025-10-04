@@ -10,6 +10,7 @@ import {
   createLead,
   moveLead,
   deleteLead,
+  get_prospecFunnels
 } from "../../server/actions/lead-actions";
 
 import LeadButton from "./_components/ui/LeadButton";
@@ -29,13 +30,13 @@ import {
 import Client from "./_components/ui/Client";
 import StageColumn from "./_components/ui/StageColumn";
 
-const STAGES = [
+/* const STAGES = [
   { key: "LEAD", label: "Lead Capturado", color: "border-blue-500" },
   { key: "MQL", label: "MQL", color: "border-amber-400" },
   { key: "ANALISE_MQL", label: "Análise de MQL", color: "border-emerald-500" },
   { key: "SQL", label: "SQL", color: "border-red-500" },
   { key: "REUNIAO", label: "Reunião agendada", color: "border-yellow-400" },
-];
+]; */
 
 function MetricCard({ icon: Icon, title, subtitle, value }) {
   return (
@@ -60,7 +61,10 @@ function MetricCard({ icon: Icon, title, subtitle, value }) {
 export function LeadCard({ lead, onDelete }) {
   const [{ isDragging }, drag] = useDrag({
     type: "LEAD_CARD",
-    item: { id: lead.id, stage: lead.stage },
+    item: () => ({
+      id: lead.id,
+      prospec_funnel_id: lead.prospec_funnel_id, // ✅ chave que será comparada no drop
+    }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -150,32 +154,47 @@ export default function CRMPage() {
   const [leads, setLeads] = useState([]);
   const [userName, setUserName] = useState("");
   const [search, setSearch] = useState("");
+  const [funnels, setFunnels] = useState([]);
 
   async function refresh() {
     const data = await listLeads();
     setLeads(data);
   }
 
-  useEffect(() => {
-    refresh();
+useEffect(() => {
+  async function fetchData() {
+    const [leadsData, funnelData] = await Promise.all([
+      listLeads(),
+      get_prospecFunnels(),
+    ]);
+
+    setLeads(leadsData);
+    setFunnels(funnelData);
+
     try {
       const name = localStorage.getItem("userName");
       if (name) setUserName(name);
     } catch (e) {}
-  }, []);
+  }
+  fetchData();
+}, []);
 
-  const grouped = useMemo(() => {
-    const by = Object.fromEntries(STAGES.map((s) => [s.key, []]));
-    leads
-      .filter((l) =>
-        search
-          ? l.name.toLowerCase().includes(search.toLowerCase()) ||
-            (l.origin || "").toLowerCase().includes(search.toLowerCase())
-          : true
-      )
-      .forEach((l) => by[l.stage]?.push(l));
-    return by;
-  }, [leads, search]);
+const grouped = useMemo(() => {
+  const by = Object.fromEntries(funnels.map((f) => [f.id, []]));
+  leads
+    .filter((l) =>
+      search
+        ? l.name.toLowerCase().includes(search.toLowerCase()) ||
+          (l.origin || "").toLowerCase().includes(search.toLowerCase())
+        : true
+    )
+    .forEach((l) => {
+      if (by[l.prospec_funnel_id]) {
+        by[l.prospec_funnel_id].push(l);
+      }
+    });
+  return by;
+}, [leads, search, funnels]);
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -306,17 +325,23 @@ export default function CRMPage() {
                 </div>
               </section>
 
-              <section className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-                {STAGES.map((col) => (
-                  <StageColumn
-                    key={col.key}
-                    col={col}
-                    leads={grouped[col.key]}
-                    moveLead={moveLead}
-                    refresh={refresh}
-                    deleteLead={deleteLead}
-                  />
-                ))}
+              {/* <section className={`grid grid-cols-1 gap-4 lg:grid-cols-${funnels.length}`}> */}
+              <section className="grid gap-4" style={{gridTemplateColumns: `repeat(${funnels.length}, minmax(0, 1fr))`,}}
+>
+                {funnels.length > 0 ? (
+                  funnels.map((col) => (
+                    <StageColumn
+                      key={col.id}
+                      col={col}
+                      leads={grouped[col.id] || []}
+                      moveLead={moveLead}
+                      refresh={refresh}
+                      deleteLead={deleteLead}
+                    />
+                  ))
+                ) : (
+                  <p>Carregando colunas...</p>
+                )}
               </section>
             </div>
           </main>

@@ -30,7 +30,7 @@ function stageOrDefault(v) {
 // ----------------- Ações -----------------
 export async function listLeads() {
   const leads = await prisma.lead.findMany({
-    orderBy: [{ stage: "asc" }, { createdAt: "desc" }],
+    orderBy: [{ prospec_funnel_id: "asc" }, { createdAt: "desc" }],
     include: { owner: { select: { id: true, name: true, email: true } } },
   });
   return leads.map(serializeLead); //Retorna dados serializado, estava dando erro ao carregar a página
@@ -95,19 +95,19 @@ function serializeLead(lead) {
     origin: lead.origin,
     score: lead.score,
     notes: lead.notes,
-    value: lead.value?.toNumber?.() ?? null, // ✅ Decimal → number
+    value: lead.value?.toNumber?.() ?? null,
     ownerId: lead.ownerId,
     stage: lead.stage,
-    createdAt: lead.createdAt.toISOString(), // ✅ Date → string
-    updatedAt: lead.updatedAt.toISOString(), // ✅ Date → string
+    prospec_funnel_id: lead.prospec_funnel_id,
+    createdAt: lead.createdAt.toISOString(),
+    updatedAt: lead.updatedAt.toISOString(),
   };
 }
 
-export async function moveLead(leadId, nextStage) {
-  const stage = stageOrDefault(nextStage);
+export async function moveLead(leadId, nextFunnelId) {
   return prisma.lead.update({
     where: { id: Number(leadId) },
-    data: { stage },
+    data: { prospec_funnel_id: Number(nextFunnelId) },
   });
 }
 
@@ -138,4 +138,21 @@ export async function updateLead(leadId, partial = {}) {
     where: { id: Number(leadId) },
     data,
   });
+}
+
+export async function get_prospecFunnels() {
+  try {
+    const prospec_funnels = await prisma.prospecFunnel.findMany({
+      orderBy: [{ id: "asc" }],
+      select: {
+        id: true,
+        name: true
+      }
+    });
+
+    return prospec_funnels;
+  } catch (error) {
+    console.error("Erro ao buscar funis:", error);
+    return [];
+  }
 }

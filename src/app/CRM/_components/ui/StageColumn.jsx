@@ -11,8 +11,8 @@ export default function StageColumn({
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "LEAD_CARD",
     drop: async (item) => {
-      if (item.stage !== col.key) {
-        await moveLead(item.id, col.key);
+      if (item.prospec_funnel_id !== col.id) {
+        await moveLead(item.id, col.id);
         await refresh();
       }
     },
