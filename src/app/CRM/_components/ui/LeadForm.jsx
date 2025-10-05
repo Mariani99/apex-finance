@@ -21,7 +21,7 @@ import { DotsThree } from "@phosphor-icons/react";
 import { useState, useTransition, useEffect } from "react";
 
 export function LeadForm({ title, data = null }) {
-// console.log(data);
+  // console.log(data);
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
@@ -75,10 +75,12 @@ export function LeadForm({ title, data = null }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        {title === 'Novo Lead' ? (  //Dependendo do title, a imagem mudará, pois aproveitaremos //
-                                                //o component tanto para atualizar quanto para adicionar lead //
+        {title === "Novo Lead" ? ( //Dependendo do title, a imagem mudará, pois aproveitaremos //
+          //o component tanto para atualizar quanto para adicionar lead //
           <Button className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-            Novo Lead<Plus size={16} weight="bold" /></Button>
+            Novo Lead
+            <Plus size={16} weight="bold" />
+          </Button>
         ) : (
           <DotsThree className="cursor-pointer">
             {title} <Plus size={16} weight="bold" />
@@ -86,16 +88,16 @@ export function LeadForm({ title, data = null }) {
         )}
       </DialogTrigger>
 
-      <DialogContent className="sm:w-[90%] w-[60%] sm:h-[90%] h-[60%]">
-        <DialogHeader className="max-h-max">
+      <DialogContent className=" sm:w-[90%] h-auto max-h-[90vh] overflow-visible">
+        <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Preencha os dados do novo lead.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="max-h-max">
+          <div>
             <div className="grid grid-cols-2 gap-4">
-              { title !== 'Novo Lead' && (
+              {title !== "Novo Lead" && (
                 <div className="grid gap-2">
                   <Label htmlFor="id-1">ID</Label>
                   <Input
@@ -107,33 +109,56 @@ export function LeadForm({ title, data = null }) {
                   />
                 </div>
               )}
-              {/* <div className="grid gap-2">
-                <Label htmlFor="id-1">ID</Label>
-                <Input id="id-1" name="id" required defaultValue={data && data.id !== null ? data.id : ""} readOnly/>
-              </div> */}
+
               <div className="grid gap-2">
                 <Label htmlFor="name-1">Nome</Label>
-                <Input id="name-1" name="name" required defaultValue={data && data.name !== null ? data.name : ""}/>
+                <Input
+                  id="name-1"
+                  name="name"
+                  required
+                  defaultValue={data && data.name !== null ? data.name : ""}
+                />
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="company-1">Empresa</Label>
-                <Input id="company-1" name="company" defaultValue={data && data.company !== null ? data.company : ""}/>
+                <Input
+                  id="company-1"
+                  name="company"
+                  defaultValue={
+                    data && data.company !== null ? data.company : ""
+                  }
+                />
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="email-1">Email</Label>
-                <Input id="email-1" name="email" type="email" defaultValue={data && data.email !== null ? data.email : ""}/>
+                <Input
+                  id="email-1"
+                  name="email"
+                  type="email"
+                  defaultValue={data && data.email !== null ? data.email : ""}
+                />
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="phone-1">Telefone</Label>
-                <Input id="phone-1" name="phone" defaultValue={data && data.phone !== null ? data.phone : ""}/>
+                <Input
+                  id="phone-1"
+                  name="phone"
+                  defaultValue={data && data.phone !== null ? data.phone : ""}
+                />
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="jobTitle-1">Cargo</Label>
-                <Input id="jobTitle-1" name="jobTitle" defaultValue={data && data.jobTitle !== null ? data.jobTitle : ""}/>
+                <Input
+                  id="jobTitle-1"
+                  name="jobTitle"
+                  defaultValue={
+                    data && data.jobTitle !== null ? data.jobTitle : ""
+                  }
+                />
               </div>
 
               <div className="grid gap-2">
@@ -160,8 +185,14 @@ export function LeadForm({ title, data = null }) {
 
               <div className="grid gap-2">
                 <Label htmlFor="ownerId-1">Vendedor Responsável</Label>
-                <Select id="ownerId-1" name="ownerId" defaultValue={data && data.ownerId !== null ? data.ownerId : ""}>
-                <option value="">Selecione um vendedor (opcional)</option>
+                <Select
+                  id="ownerId-1"
+                  name="ownerId"
+                  defaultValue={
+                    data && data.ownerId !== null ? data.ownerId : ""
+                  }
+                >
+                  <option value="">Selecione um vendedor (opcional)</option>
                   {users.map((user) => (
                     <option key={user.id} value={user.id}>
                       {user.name} ({user.email})
@@ -175,31 +206,14 @@ export function LeadForm({ title, data = null }) {
                 <textarea
                   id="notes-1"
                   name="notes"
-                  className="flex min-h-[80px] max-h-[400px] w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background resize-y"
+                  className="flex min-h-[80px] max-h-[30vh] w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background resize-y"
                   defaultValue={data && data.notes !== null ? data.notes : ""}
-
                 />
               </div>
-
-              {/* Se quiser permitir informar valor e/ou estágio inicial: */}
-              {/* <div className="grid gap-2">
-                <Label htmlFor="value-1">Valor (R$)</Label>
-                <Input id="value-1" name="value" inputMode="decimal" placeholder="1000,00" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="stage-1">Estágio</Label>
-                <select id="stage-1" name="stage" className="border rounded-md px-3 py-2 text-sm">
-                  <option value="LEAD">LEAD</option>
-                  <option value="MQL">MQL</option>
-                  <option value="ANALISE_MQL">ANALISE_MQL</option>
-                  <option value="SQL">SQL</option>
-                  <option value="REUNIAO">REUNIAO</option>
-                </select>
-              </div> */}
             </div>
           </div>
 
-          <DialogFooter className="max-h-max gap-4">
+          <DialogFooter className="mt-5 gap-4">
             <Button
               type="button"
               variant="outline"
