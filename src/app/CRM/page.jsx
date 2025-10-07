@@ -1,5 +1,6 @@
 "use client";
 
+import MetricCard from "./_components/ui/MetricCard";
 import { useEffect, useMemo, useState } from "react";
 import { useDrag } from "react-dnd";
 import { useDrop } from "react-dnd";
@@ -10,7 +11,7 @@ import {
   createLead,
   moveLead,
   deleteLead,
-  get_prospecFunnels
+  get_prospecFunnels,
 } from "../../server/actions/lead-actions";
 
 import LeadButton from "./_components/ui/LeadButton";
@@ -38,26 +39,6 @@ import StageColumn from "./_components/ui/StageColumn";
   { key: "REUNIAO", label: "Reunião agendada", color: "border-yellow-400" },
 ]; */
 
-function MetricCard({ icon: Icon, title, subtitle, value }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-      <div className="flex items-center gap-3">
-        <div className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
-          <Icon size={20} className="text-slate-600" />
-        </div>
-        <div className="text-sm">
-          <div className="font-medium text-slate-800">{title}</div>
-          <div className="text-slate-400">{subtitle}</div>
-        </div>
-      </div>
-      <div className="mt-4 flex items-end justify-between">
-        <div className="text-2xl font-semibold text-slate-900">{value}</div>
-        <div className="h-8 w-24 rounded bg-gradient-to-tr from-emerald-100 to-emerald-200" />
-      </div>
-    </div>
-  );
-}
-
 export function LeadCard({ lead, onDelete }) {
   const [{ isDragging }, drag] = useDrag({
     type: "LEAD_CARD",
@@ -79,23 +60,16 @@ export function LeadCard({ lead, onDelete }) {
       style={{ cursor: "move" }}
     >
       <div className=" mb-2 flex items-start justify-between">
-        <div className="font-medium text-[15px] text-slate-800" >
+        <div className="font-medium text-[15px] text-slate-800">
           {(() => {
             const parts = lead.name.trim().split(" ");
             return parts.length > 1
-               ? lead.id+". "+`${parts[0]} ${parts[parts.length - 1]}`
-              : lead.id+". "+parts[0];
+              ? lead.id + ". " + `${parts[0]} ${parts[parts.length - 1]}`
+              : lead.id + ". " + parts[0];
           })()}
         </div>
-        {/* <button
-          className="text-slate-400 hover:text-slate-600"
-          onClick={() => {
-            alert(`Ações para o lead: ${lead}`);
-            console.log(lead)
-          }}
-        >
-          <DotsThree size={18} weight="bold" /> */}
-        <LeadButton windowTitle="Editar lead" data={lead}/>
+
+        <LeadButton windowTitle="Editar lead" data={lead} />
         {/* </button> */}
       </div>
 
@@ -143,7 +117,7 @@ export function LeadCard({ lead, onDelete }) {
         <button
           onClick={() => onDelete(lead.id)}
           className="text-xs text-red-500 hover:underline"
-          >
+        >
           Excluir
         </button>
       </div>
@@ -161,40 +135,40 @@ export default function CRMPage() {
     setLeads(data);
   }
 
-useEffect(() => {
-  async function fetchData() {
-    const [leadsData, funnelData] = await Promise.all([
-      listLeads(),
-      get_prospecFunnels(),
-    ]);
+  useEffect(() => {
+    async function fetchData() {
+      const [leadsData, funnelData] = await Promise.all([
+        listLeads(),
+        get_prospecFunnels(),
+      ]);
 
-    setLeads(leadsData);
-    setFunnels(funnelData);
+      setLeads(leadsData);
+      setFunnels(funnelData);
 
-    try {
-      const name = localStorage.getItem("userName");
-      if (name) setUserName(name);
-    } catch (e) {}
-  }
-  fetchData();
-}, []);
+      try {
+        const name = localStorage.getItem("userName");
+        if (name) setUserName(name);
+      } catch (e) {}
+    }
+    fetchData();
+  }, []);
 
-const grouped = useMemo(() => {
-  const by = Object.fromEntries(funnels.map((f) => [f.id, []]));
-  leads
-    .filter((l) =>
-      search
-        ? l.name.toLowerCase().includes(search.toLowerCase()) ||
-          (l.origin || "").toLowerCase().includes(search.toLowerCase())
-        : true
-    )
-    .forEach((l) => {
-      if (by[l.prospec_funnel_id]) {
-        by[l.prospec_funnel_id].push(l);
-      }
-    });
-  return by;
-}, [leads, search, funnels]);
+  const grouped = useMemo(() => {
+    const by = Object.fromEntries(funnels.map((f) => [f.id, []]));
+    leads
+      .filter((l) =>
+        search
+          ? l.name.toLowerCase().includes(search.toLowerCase()) ||
+            (l.origin || "").toLowerCase().includes(search.toLowerCase())
+          : true
+      )
+      .forEach((l) => {
+        if (by[l.prospec_funnel_id]) {
+          by[l.prospec_funnel_id].push(l);
+        }
+      });
+    return by;
+  }, [leads, search, funnels]);
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -269,7 +243,7 @@ const grouped = useMemo(() => {
                 <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
                   Nova oportunidade
                 </button>
-                <LeadButton windowTitle="Novo Lead"/>
+                <LeadButton windowTitle="Novo Lead" />
               </div>
             </div>
 
@@ -326,8 +300,12 @@ const grouped = useMemo(() => {
               </section>
 
               {/* <section className={`grid grid-cols-1 gap-4 lg:grid-cols-${funnels.length}`}> */}
-              <section className="grid gap-4" style={{gridTemplateColumns: `repeat(${funnels.length}, minmax(0, 1fr))`,}}
->
+              <section
+                className="grid gap-4"
+                style={{
+                  gridTemplateColumns: `repeat(${funnels.length}, minmax(0, 1fr))`,
+                }}
+              >
                 {funnels.length > 0 ? (
                   funnels.map((col) => (
                     <StageColumn
