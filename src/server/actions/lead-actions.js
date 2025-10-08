@@ -115,7 +115,7 @@ export async function moveLead(leadId, nextFunnelId) {
 export async function deleteLead(leadId) {
   return prisma.lead.update({
     where: { id: Number(leadId) },
-    data: { stage: Stage.EXCLUIDO },
+    data: { prospec_funnel_id: 0 },
   });
 }
 
