@@ -1,7 +1,7 @@
 "use client";
 
 import { createLead } from "@/server/actions/lead-actions";
-import { getUsers } from "@/server/actions/user-actions";
+import { getUsers, get_prospecFunnels } from "@/server/actions/user-actions";
 import {
   Dialog,
   DialogContent,
@@ -27,9 +27,10 @@ export function LeadForm({ title, data = null }) {
   const [isError, setIsError] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [users, setUsers] = useState([]);
+  const [stages, setStages] = useState([]);
 
-  useEffect(() => {
-    const loadUsers = async () => {
+  useEffect(() => { //busca as informações para colocar no select/options ao invés de campos fixos
+    const loadUsers = async () => { //carrega a lista de usuários para colocar na seleção do campo do form
       try {
         const usersList = await getUsers();
         setUsers(usersList);
@@ -38,8 +39,18 @@ export function LeadForm({ title, data = null }) {
       }
     };
 
+    const loadStages = async () => { //carrega a lista de etapas do funil para colocar na seleção do campo do form
+      try {
+        const stagesList = await get_prospecFunnels(); // Chama a função para carregar as etapas
+        setStages(stagesList); // Armazena as etapas
+      } catch (error) {
+        console.error("Erro ao carregar etapas:", error);
+      }
+    };
+
     if (isOpen) {
       loadUsers();
+      loadStages(); // Carrega as etapas quando o Dialog estiver aberto
     }
   }, [isOpen]);
 
@@ -200,7 +211,17 @@ export function LeadForm({ title, data = null }) {
                   ))}
                 </Select>
               </div>
-
+              <div className="md:col-span-2 flex flex-col gap-2">
+              <Label htmlFor="stage-1">Etapa do funil</Label>
+              <Select id="stage-1" name="stageId" required>
+                <option value="">Selecione uma etapa</option>
+                {stages.map((stage) => (
+                  <option key={stage.id} value={stage.id}>
+                    {stage.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
               <div className="md:col-span-2 flex flex-col gap-2">
                 <Label htmlFor="notes-1">Observações</Label>
                 <textarea

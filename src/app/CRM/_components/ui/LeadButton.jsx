@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useFormStatus } from "react-dom";
 import { LeadForm } from "./LeadForm";
 
-export function SubmitButtons() {
+/* export function SubmitButtons() { //SEM UTILIZACAO. COMENTADO E NAO REMOVIDO POIS NAO SABEMOS COMO SERÁ NO FUTURO
   const { pending } = useFormStatus();
   return (
     <>
@@ -27,7 +27,7 @@ export function SubmitButtons() {
       </Button>
     </>
   );
-}
+} */
 
 export default function LeadButton( { windowTitle, data = null }) {
   return (

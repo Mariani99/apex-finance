@@ -41,7 +41,7 @@ export async function listLeads() {
  * - um objeto JS com os campos
  * - ou um FormData direto do <form action={createLead}>
  */
-export async function createLead(payload) {
+export async function createLead(payload) { //Esta função não está servindo apenas para criar, mas também ATUALIZAR o lead
   // Transforma FormData ou objeto simples em objeto plano
   const data =
     payload instanceof FormData
@@ -61,6 +61,7 @@ const leadData = {
     notes: opt(data.notes),
     value: toDecimal(data.value),
     ownerId: toInt(data.ownerId),
+    prospec_funnel_id: toInt(data.stageId),
     stage: stageOrDefault(data.stage), // Default: LEAD
   };
 
