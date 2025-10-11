@@ -69,7 +69,7 @@ export function LeadCard({ lead, onDelete }) {
           })()}
         </div>
 
-        <LeadButton windowTitle="Editar lead" data={lead} />
+        <LeadButton windowTitle="Editar Lead" data={lead} />
         {/* </button> */}
       </div>
 
@@ -129,6 +129,7 @@ export default function CRMPage() {
   const [userName, setUserName] = useState("");
   const [search, setSearch] = useState("");
   const [funnels, setFunnels] = useState([]);
+  const [selectedFunnel, setSelectedFunnel] = useState("prospec"); // Estado para controlar a aba de prospecção e expansão
 
   async function refresh() {
     const data = await listLeads();
@@ -169,6 +170,10 @@ export default function CRMPage() {
       });
     return by;
   }, [leads, search, funnels]);
+
+  const handleFunnelSelection = (funnelType) => {
+    setSelectedFunnel(funnelType);
+  };
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -240,9 +245,7 @@ export default function CRMPage() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
-                  Nova oportunidade
-                </button>
+                <LeadButton windowTitle="Nova Oportunidade" />
                 <LeadButton windowTitle="Novo Lead" />
               </div>
             </div>
@@ -290,35 +293,64 @@ export default function CRMPage() {
                 ))}
 
                 <div className="ml-auto flex items-center gap-2">
-                  <button className="rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white">
+                  <button
+                    onClick={() => handleFunnelSelection("prospec")}
+                    className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+                      selectedFunnel === "prospec"
+                        ? "bg-blue-600 text-white"
+                        : "text-slate-500 hover:bg-slate-100"
+                    }`}
+                  >
                     Funil de Prospecção
                   </button>
-                  <button className="rounded-full px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-100">
+                  <button
+                    onClick={() => handleFunnelSelection("expansion")}
+                    className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+                      selectedFunnel === "expansion"
+                        ? "bg-blue-600 text-white"
+                        : "text-slate-500 hover:bg-slate-100"
+                    }`}
+                  >
                     Funil de Expansão
                   </button>
                 </div>
               </section>
-
-              {/* <section className={`grid grid-cols-1 gap-4 lg:grid-cols-${funnels.length}`}> */}
-              <section
-                className="grid gap-4"
-                style={{
-                  gridTemplateColumns: `repeat(${funnels.length}, minmax(0, 1fr))`,
-                }}
-              >
-                {funnels.length > 0 ? (
-                  funnels.map((col) => (
-                    <StageColumn
-                      key={col.id}
-                      col={col}
-                      leads={grouped[col.id] || []}
-                      moveLead={moveLead}
-                      refresh={refresh}
-                      deleteLead={deleteLead}
-                    />
-                  ))
+              <section>
+                {selectedFunnel === "prospec" ? (
+                  <div
+                    className="grid gap-4"
+                    style={{
+                      gridTemplateColumns: `repeat(${funnels.length}, minmax(0, 1fr))`,
+                    }}
+                  >
+                    {funnels.length > 0 ? (
+                      funnels.map((col) => (
+                        <StageColumn
+                          key={col.id}
+                          col={col}
+                          leads={grouped[col.id] || []}
+                          moveLead={moveLead}
+                          refresh={refresh}
+                          deleteLead={deleteLead}
+                        />
+                      ))
+                    ) : (
+                      <p>Carregando colunas...</p>
+                    )}
+                  </div>
                 ) : (
-                  <p>Carregando colunas...</p>
+                  <div>
+                    <h2>Funil de expansão</h2>
+                    {leads.length > 0 ? (
+                      <div className="grid grid-cols-1 gap-4">
+                        {leads.map((lead) => (
+                          <LeadCard key={lead.id} lead={lead} onDelete={deleteLead} />
+                        ))}
+                      </div>
+                    ) : (
+                      <p>Carregando leads...</p>
+                    )}
+                  </div>
                 )}
               </section>
             </div>

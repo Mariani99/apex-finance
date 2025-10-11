@@ -144,6 +144,9 @@ export async function updateLead(leadId, partial = {}) {
 export async function get_prospecFunnels() {
   try {
     const prospec_funnels = await prisma.prospecFunnel.findMany({
+      where: {
+        id: { not: 0 } //ignora coluna de exluidos/arquivados
+      },
       orderBy: [{ id: "asc" }],
       select: {
         id: true,
