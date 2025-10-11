@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 // import { createLead } from "@/server/actions/lead-actions";
 import { useFormStatus } from "react-dom";
 import { LeadForm } from "./LeadForm";
-import { OpportunityForm } from "./OpportunityForm";
+// import { OpportunityForm } from "./OpportunityForm";
 
 /* export function SubmitButtons() { //SEM UTILIZACAO. COMENTADO E NAO REMOVIDO POIS NAO SABEMOS COMO SERÁ NO FUTURO
   const { pending } = useFormStatus();
