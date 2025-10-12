@@ -29,10 +29,8 @@ export default function StageColumn({
         isOver && canDrop ? "ring-2 ring-blue-400" : ""
       }`}
     >
-      <div
-        className={`mb-3 border-b-2 ${col.color} pb-2 text-sm font-semibold text-slate-600`}
-      >
-        {col.label}
+      <div className={`mb-3 border-b-2 ${col.color} pb-2 text-sm font-semibold text-slate-600`}>
+      {col.name} {/* titulo coluna */}
       </div>
       <div className="space-y-3 max-h-[300px] md:max-h-[510px] overflow-y-auto custom-scrollbar">
         {(leads || []).map((lead) => (

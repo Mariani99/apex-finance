@@ -28,6 +28,8 @@ export function LeadForm({ title, data = null }) {
   const [isPending, startTransition] = useTransition();
   const [users, setUsers] = useState([]);
   const [stages, setStages] = useState([]);
+  const [selectedOwnerId, setSelectedOwnerId] = useState(data?.ownerId ?? ""); //esta linha garante que nao seja necessario abrir o card pelo menos uma vez para mostrar a opcao de vendedor já selecionada de acordo com o que está no banco de dados
+  const [selectedStageId, setSelectedStageId] = useState(data?.prospec_funnel_id ?? ""); //esta linha garante que nao seja necessario abrir o card pelo menos uma vez para mostrar a opcao de funis já selecionada de acordo com o que está no banco de dados
 
   useEffect(() => { //busca as informações para colocar no select/options ao invés de campos fixos
     const loadUsers = async () => { //carrega a lista de usuários para colocar na seleção do campo do form
@@ -53,6 +55,13 @@ export function LeadForm({ title, data = null }) {
       loadStages(); // Carrega as etapas quando o Dialog estiver aberto
     }
   }, [isOpen]);
+
+useEffect(() => {
+  if (data) {
+    setSelectedOwnerId(data.ownerId ?? ""); //seleciona o campo do formulario já na primeira abertura
+    setSelectedStageId(data.prospec_funnel_id ?? ""); //seleciona o campo do formulario já na primeira abertura
+  }
+}, [data, users, stages]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -199,9 +208,8 @@ export function LeadForm({ title, data = null }) {
                 <Select
                   id="ownerId-1"
                   name="ownerId"
-                  defaultValue={
-                    data && data.ownerId !== null ? data.ownerId : ""
-                  }
+                  value={selectedOwnerId}
+                  onChange={(e) => setSelectedOwnerId(e.target.value)}
                 >
                   <option value="">Selecione um vendedor (opcional)</option>
                   {users.map((user) => (
@@ -213,7 +221,13 @@ export function LeadForm({ title, data = null }) {
               </div>
               <div className="md:col-span-2 flex flex-col gap-2">
               <Label htmlFor="stage-1">Etapa do funil</Label>
-              <Select id="stage-1" name="stageId" required>
+              <Select
+                id="stage-1"
+                name="stageId"
+                value={selectedStageId}
+                onChange={(e) => setSelectedStageId(e.target.value)}
+                required
+              >
                 <option value="">Selecione uma etapa</option>
                 {stages.map((stage) => (
                   <option key={stage.id} value={stage.id}>
