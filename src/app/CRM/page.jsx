@@ -127,7 +127,8 @@ export default function CRMPage() {
   const [leads, setLeads] = useState([]);
   const [userName, setUserName] = useState("");
   const [search, setSearch] = useState("");
-  const [funnels, setFunnels] = useState([]);
+  const [prospecFunnels, setProspec] = useState([]);
+  const [expansionFunnels, setExpansion] = useState([]);
   const [selectedFunnel, setSelectedFunnel] = useState("prospec"); // Estado para controlar a aba de prospecção e expansão
 
   async function refresh() {
@@ -137,13 +138,15 @@ export default function CRMPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const [leadsData, funnelData] = await Promise.all([
+      const [leadsData, prospecData, expansionData] = await Promise.all([
         listLeads(),
-        get_stages(),
+        get_stages(1),
+        get_stages(2)
       ]);
-
+      
       setLeads(leadsData);
-      setFunnels(funnelData);
+      setProspec(prospecData);
+      setExpansion(expansionData);
 
       try {
         const name = localStorage.getItem("userName");
@@ -154,21 +157,24 @@ export default function CRMPage() {
   }, []);
 
   const grouped = useMemo(() => {
-    const by = Object.fromEntries(funnels.map((f) => [f.id, []]));
-    leads
-      .filter((l) =>
-        search
-          ? l.name.toLowerCase().includes(search.toLowerCase()) ||
+  const by = Object.fromEntries([
+    ...prospecFunnels.map((f) => [f.id, []]),
+    ...expansionFunnels.map((f) => [f.id, []]), // Incluindo expansionFunnels
+  ]);
+  leads
+    .filter((l) =>
+      search
+        ? l.name.toLowerCase().includes(search.toLowerCase()) ||
           (l.origin || "").toLowerCase().includes(search.toLowerCase())
-          : true
-      )
-      .forEach((l) => {
-        if (by[l.stage_id]) {
-          by[l.stage_id].push(l);
-        }
-      });
-    return by;
-  }, [leads, search, funnels]);
+        : true
+    )
+    .forEach((l) => {
+      if (by[l.stage_id]) {
+        by[l.stage_id].push(l);
+      }
+    });
+  return by;
+}, [leads, search, prospecFunnels, expansionFunnels]);  // Dependência de expansionFunnels
 
   const handleFunnelSelection = (funnelType) => {
     setSelectedFunnel(funnelType);
@@ -201,8 +207,8 @@ export default function CRMPage() {
                 <a
                   key={item}
                   className={`flex items-center justify-between rounded-lg px-3 py-2 ${item === "CRM"
-                      ? "bg-blue-50 font-medium text-blue-700"
-                      : "text-slate-600 hover:bg-slate-50"
+                    ? "bg-blue-50 font-medium text-blue-700"
+                    : "text-slate-600 hover:bg-slate-50"
                     }`}
                   href="#"
                 >
@@ -294,8 +300,8 @@ export default function CRMPage() {
                   <button
                     onClick={() => handleFunnelSelection("prospec")}
                     className={`rounded-full px-3 py-1.5 text-xs font-semibold ${selectedFunnel === "prospec"
-                        ? "bg-blue-600 text-white"
-                        : "text-slate-500 hover:bg-slate-100"
+                      ? "bg-blue-600 text-white"
+                      : "text-slate-500 hover:bg-slate-100"
                       }`}
                   >
                     Funil de Prospecção
@@ -312,15 +318,15 @@ export default function CRMPage() {
                 </div>
               </section>
               <section>
-                {selectedFunnel === "prospec" ? (
+                {selectedFunnel === "prospec" && (
                   <div
                     className="grid gap-4"
                     style={{
-                      gridTemplateColumns: `repeat(${funnels.length}, minmax(0, 1fr))`,
+                      gridTemplateColumns: `repeat(${prospecFunnels.length}, minmax(0, 1fr))`,
                     }}
                   >
-                    {funnels.length > 0 ? (
-                      funnels.map((col) => (
+                    {prospecFunnels.length > 0 ? (
+                      prospecFunnels.map((col) => (
                         <StageColumn
                           key={col.id}
                           col={col}
@@ -334,17 +340,28 @@ export default function CRMPage() {
                       <p>Carregando colunas...</p>
                     )}
                   </div>
-                ) : (
-                  <div>
-                    <h2>Funil de expansão</h2>
-                    {leads.length > 0 ? (
-                      <div className="grid grid-cols-1 gap-4">
-                        {leads.map((lead) => (
-                          <LeadCard key={lead.id} lead={lead} onDelete={deleteLead} />
-                        ))}
-                      </div>
+                )}
+
+                {selectedFunnel === "expansion" && (
+                  <div
+                    className="grid gap-4"
+                    style={{
+                      gridTemplateColumns: `repeat(${expansionFunnels.length}, minmax(0, 1fr))`,
+                    }}
+                  >
+                    {expansionFunnels.length > 0 ? (
+                      expansionFunnels.map((col) => (
+                        <StageColumn
+                          key={col.id}
+                          col={col}
+                          leads={grouped[col.id] || []}
+                          moveLead={moveLead}
+                          refresh={refresh}
+                          deleteLead={deleteLead}
+                        />
+                      ))
                     ) : (
-                      <p>Carregando leads...</p>
+                      <p>Carregando colunas...</p>
                     )}
                   </div>
                 )}

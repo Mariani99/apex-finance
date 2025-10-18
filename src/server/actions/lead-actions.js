@@ -1,6 +1,7 @@
 "use server";
 
 import { PrismaClient, Stage } from "@prisma/client";
+// import { Nuosu_SIL } from "next/font/google";
 
 // --- Prisma singleton (evita muitas conexões em dev/hmr) ---
 const globalForPrisma = globalThis;
@@ -144,11 +145,12 @@ export async function updateLead(leadId, partial = {}) {
   });
 }
 
-export async function get_stages() {
+export async function get_stages(funneltype = null) {
   try {
     const prospec_funnels = await prisma.stage.findMany({
       where: {
-        id: { not: 0 } //ignora coluna de exluidos/arquivados
+        id: { not: 0 }, //ignora coluna de exluidos/arquivados
+        funnel_type_id: funneltype
       },
       orderBy: [{ id: "asc" }],
       select: {

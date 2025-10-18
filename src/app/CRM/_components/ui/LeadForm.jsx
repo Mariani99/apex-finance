@@ -1,7 +1,7 @@
 "use client";
 
 import { createLead } from "@/server/actions/lead-actions";
-import { getUsers, get_stages } from "@/server/actions/user-actions";
+import { getUsers, getFunnelType, getStagesTypeId } from "@/server/actions/user-actions";
 import {
   Dialog,
   DialogContent,
@@ -21,16 +21,20 @@ import { DotsThree } from "@phosphor-icons/react";
 import { useState, useTransition, useEffect } from "react";
 
 export function LeadForm({ title, data = null }) {
-  // console.log(data);
+  console.log(data);
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [users, setUsers] = useState([]);
   const [prospecStages, setProspecStages] = useState([]);
-  // const [expansionStages, setExpansionStages] = useState([]);
   const [selectedOwnerId, setSelectedOwnerId] = useState(data?.ownerId ?? ""); //esta linha garante que nao seja necessario abrir o card pelo menos uma vez para mostrar a opcao de vendedor já selecionada de acordo com o que está no banco de dados
   const [selectedStageId, setSelectedStageId] = useState(data?.stage_id ?? ""); //esta linha garante que nao seja necessario abrir o card pelo menos uma vez para mostrar a opcao de funis já selecionada de acordo com o que está no banco de dados
+
+  const [funnelTypes, setFunnelTypes] = useState([]); // Para armazenar os tipos de funil
+  const [selectedFunnelTypeId, setSelectedFunnelTypeId] = useState(""); // Para armazenar o tipo de funil selecionado
+  const [stagesByFunnel, setStagesByFunnel] = useState({}); // Para armazenar as etapas de funil agrupadas por tipo de funil
+  const [availableStages, setAvailableStages] = useState([]); // Para armazenar as etapas disponíveis baseadas no tipo de funil selecionado
 
   useEffect(() => { //busca as informações para colocar no select/options ao invés de campos fixos
     const loadUsers = async () => { //carrega a lista de usuários para colocar na seleção do campo do form
@@ -42,30 +46,89 @@ export function LeadForm({ title, data = null }) {
       }
     };
 
+    const loadFunnelTypes = async () => {  // Nova função para carregar os tipos de funil
+      try {
+        const funnelList = await getFunnelType(); // Carrega os tipos de funil
+        console.log(funnelList); // Verifique se está retornando corretamente
+        setFunnelTypes(funnelList); // Armazena os tipos de funil
+        return funnelList;
+      } catch (error) {
+        console.error("Erro ao carregar tipos de funil:", error);
+        return [];
+      }
+    };
+
     const loadProspecStages = async () => { //carrega a lista de etapas do funil para colocar na seleção do campo do form
       try {
-        const stagesList = await get_stages(1); // Chama a função para carregar as etapas
+        const stagesList = await getFunnelType(); // Chama a função para carregar as etapas
+        console.log(stagesList);
         setProspecStages(stagesList); // Armazena as etapas
+
       } catch (error) {
         console.error("Erro ao carregar etapas de prospecção:", error);
       }
     };
 
-    /* const loadExpansionStages = async () => { //carrega a lista de etapas do funil para colocar na seleção do campo do form
-      try {
-        const stagesList = await get_stages(2); // Chama a função para carregar as etapas
-        setExpansionStages(stagesList); // Armazena as etapas
-      } catch (error) {
-        console.error("Erro ao carregar etapas de expansão:", error);
-      }
-    }; */
-
     if (isOpen) {
-      loadUsers();
-      loadProspecStages(); // Carrega as etapas quando o Dialog estiver aberto
-      // loadExpansionStages(); // Carrega as etapas quando o Dialog estiver aberto
+      const doLoad = async () => {
+        // carregar usuários
+        await loadUsers();
+
+        // carregar tipos de funil e, para cada tipo, carregar suas etapas
+        const funnels = await loadFunnelTypes();
+        const funnelStages = {};
+        for (const f of funnels) {
+          try {
+            const stages = await getStagesTypeId(f.id);
+            funnelStages[f.id] = stages || [];
+          } catch (e) {
+            funnelStages[f.id] = [];
+          }
+        }
+        setStagesByFunnel(funnelStages);
+
+        // Se estivermos editando um lead (data) pré-selecionar o funnel e etapa
+        if (data && data.stage_id) {
+          // Encontrar qual funnel contém a etapa
+          const found = Object.keys(funnelStages).find((fid) =>
+            funnelStages[fid].some((s) => Number(s.id) === Number(data.stage_id))
+          );
+          if (found) {
+            setSelectedFunnelTypeId(String(found));
+            setAvailableStages(funnelStages[found] || []);
+            setSelectedStageId(String(data.stage_id));
+          }
+        }
+
+        // ainda mantém compatibilidade com prospecStages
+        await loadProspecStages();
+      };
+
+      doLoad();
     }
   }, [isOpen]);
+
+  // Quando o usuário seleciona um tipo de funil, buscar as etapas daquele funil
+  useEffect(() => {
+    if (!selectedFunnelTypeId) {
+      setAvailableStages([]);
+      return;
+    }
+
+    let mounted = true;
+    const fetchStages = async () => {
+      try {
+        const stages = await getStagesTypeId(Number(selectedFunnelTypeId));
+        if (mounted) setAvailableStages(stages || []);
+      } catch (error) {
+        console.error("Erro ao carregar etapas do funil selecionado:", error);
+        if (mounted) setAvailableStages([]);
+      }
+    };
+
+    fetchStages();
+    return () => (mounted = false);
+  }, [selectedFunnelTypeId]);
 
   useEffect(() => {
     if (data) {
@@ -230,17 +293,38 @@ export function LeadForm({ title, data = null }) {
                   ))}
                 </Select>
               </div>
-              <div className="md:col-span-2 flex flex-col gap-2">
-                <Label htmlFor="stage-1">Etapa do funil</Label>
+              <div className="grid gap-2">
+                <Label htmlFor="stage-1">Tipo de funil</Label>
                 <Select
                   id="stage-1"
+                  name="funnelTypeId"
+                  value={selectedFunnelTypeId}
+                  onChange={(e) => {
+                    setSelectedFunnelTypeId(e.target.value); // Atualize o tipo de funil selecionado
+                    setAvailableStages(stagesByFunnel[e.target.value] || []); // Carregue as etapas desse tipo de funil
+                  }}
+                  required
+                >
+                  <option value="">Selecione um tipo de funil</option>
+                  {funnelTypes.map((funnel) => (
+                    <option key={funnel.id} value={funnel.id}>
+                      {funnel.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="stageId">Etapa do funil</Label>
+                <Select
+                  id="stageId"
                   name="stageId"
                   value={selectedStageId}
                   onChange={(e) => setSelectedStageId(e.target.value)}
                   required
                 >
                   <option value="">Selecione uma etapa</option>
-                  {prospecStages.map((stage) => (
+                  {availableStages.map((stage) => (
                     <option key={stage.id} value={stage.id}>
                       {stage.name}
                     </option>

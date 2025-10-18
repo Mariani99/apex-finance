@@ -32,7 +32,7 @@ import { ColumnForm } from "./ColumnForm.jsx";
 } */
 
 export default function LeadButton({ windowTitle, data = null }) { //lead button também servirá para o botão de nova oportunidade
-
+console.log(data);
   let content;
 
   if (windowTitle === "Novo Lead" || windowTitle === "Editar Lead") { //
