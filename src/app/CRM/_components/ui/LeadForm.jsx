@@ -1,7 +1,7 @@
 "use client";
 
 import { createLead } from "@/server/actions/lead-actions";
-import { getUsers, get_prospecFunnels } from "@/server/actions/user-actions";
+import { getUsers, get_stages } from "@/server/actions/user-actions";
 import {
   Dialog,
   DialogContent,
@@ -27,9 +27,10 @@ export function LeadForm({ title, data = null }) {
   const [isError, setIsError] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [users, setUsers] = useState([]);
-  const [stages, setStages] = useState([]);
+  const [prospecStages, setProspecStages] = useState([]);
+  // const [expansionStages, setExpansionStages] = useState([]);
   const [selectedOwnerId, setSelectedOwnerId] = useState(data?.ownerId ?? ""); //esta linha garante que nao seja necessario abrir o card pelo menos uma vez para mostrar a opcao de vendedor já selecionada de acordo com o que está no banco de dados
-  const [selectedStageId, setSelectedStageId] = useState(data?.prospec_funnel_id ?? ""); //esta linha garante que nao seja necessario abrir o card pelo menos uma vez para mostrar a opcao de funis já selecionada de acordo com o que está no banco de dados
+  const [selectedStageId, setSelectedStageId] = useState(data?.stage_id ?? ""); //esta linha garante que nao seja necessario abrir o card pelo menos uma vez para mostrar a opcao de funis já selecionada de acordo com o que está no banco de dados
 
   useEffect(() => { //busca as informações para colocar no select/options ao invés de campos fixos
     const loadUsers = async () => { //carrega a lista de usuários para colocar na seleção do campo do form
@@ -41,27 +42,37 @@ export function LeadForm({ title, data = null }) {
       }
     };
 
-    const loadStages = async () => { //carrega a lista de etapas do funil para colocar na seleção do campo do form
+    const loadProspecStages = async () => { //carrega a lista de etapas do funil para colocar na seleção do campo do form
       try {
-        const stagesList = await get_prospecFunnels(); // Chama a função para carregar as etapas
-        setStages(stagesList); // Armazena as etapas
+        const stagesList = await get_stages(1); // Chama a função para carregar as etapas
+        setProspecStages(stagesList); // Armazena as etapas
       } catch (error) {
-        console.error("Erro ao carregar etapas:", error);
+        console.error("Erro ao carregar etapas de prospecção:", error);
       }
     };
 
+    /* const loadExpansionStages = async () => { //carrega a lista de etapas do funil para colocar na seleção do campo do form
+      try {
+        const stagesList = await get_stages(2); // Chama a função para carregar as etapas
+        setExpansionStages(stagesList); // Armazena as etapas
+      } catch (error) {
+        console.error("Erro ao carregar etapas de expansão:", error);
+      }
+    }; */
+
     if (isOpen) {
       loadUsers();
-      loadStages(); // Carrega as etapas quando o Dialog estiver aberto
+      loadProspecStages(); // Carrega as etapas quando o Dialog estiver aberto
+      // loadExpansionStages(); // Carrega as etapas quando o Dialog estiver aberto
     }
   }, [isOpen]);
 
-useEffect(() => {
-  if (data) {
-    setSelectedOwnerId(data.ownerId ?? ""); //seleciona o campo do formulario já na primeira abertura
-    setSelectedStageId(data.prospec_funnel_id ?? ""); //seleciona o campo do formulario já na primeira abertura
-  }
-}, [data, users, stages]);
+  useEffect(() => {
+    if (data) {
+      setSelectedOwnerId(data.ownerId ?? ""); //seleciona o campo do formulario já na primeira abertura
+      setSelectedStageId(data.stage_id ?? ""); //seleciona o campo do formulario já na primeira abertura
+    }
+  }, [data, users, prospecStages]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -101,11 +112,11 @@ useEffect(() => {
             Novo Lead
             <Plus size={16} weight="bold" />
           </Button>
-        ) : (
+        ) : title === "Editar Lead" ? (
           <DotsThree className="cursor-pointer">
             {title} <Plus size={16} weight="bold" />
           </DotsThree>
-        )}
+        ) : null}
       </DialogTrigger>
 
       <DialogContent className=" sm:w-[90%] h-auto max-h-[90vh] overflow-visible">
@@ -220,22 +231,22 @@ useEffect(() => {
                 </Select>
               </div>
               <div className="md:col-span-2 flex flex-col gap-2">
-              <Label htmlFor="stage-1">Etapa do funil</Label>
-              <Select
-                id="stage-1"
-                name="stageId"
-                value={selectedStageId}
-                onChange={(e) => setSelectedStageId(e.target.value)}
-                required
-              >
-                <option value="">Selecione uma etapa</option>
-                {stages.map((stage) => (
-                  <option key={stage.id} value={stage.id}>
-                    {stage.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
+                <Label htmlFor="stage-1">Etapa do funil</Label>
+                <Select
+                  id="stage-1"
+                  name="stageId"
+                  value={selectedStageId}
+                  onChange={(e) => setSelectedStageId(e.target.value)}
+                  required
+                >
+                  <option value="">Selecione uma etapa</option>
+                  {prospecStages.map((stage) => (
+                    <option key={stage.id} value={stage.id}>
+                      {stage.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
               <div className="md:col-span-2 flex flex-col gap-2">
                 <Label htmlFor="notes-1">Observações</Label>
                 <textarea

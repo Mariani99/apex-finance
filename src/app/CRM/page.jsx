@@ -11,7 +11,7 @@ import {
   createLead,
   moveLead,
   deleteLead,
-  get_prospecFunnels,
+  get_stages,
 } from "../../server/actions/lead-actions";
 
 import LeadButton from "./_components/ui/LeadButton";
@@ -44,7 +44,7 @@ export function LeadCard({ lead, onDelete }) {
     type: "LEAD_CARD",
     item: () => ({
       id: lead.id,
-      prospec_funnel_id: lead.prospec_funnel_id, // ✅ chave que será comparada no drop
+      stage_id: lead.stage_id, // ✅ chave que será comparada no drop
     }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
@@ -54,9 +54,8 @@ export function LeadCard({ lead, onDelete }) {
   return (
     <div
       ref={drag}
-      className={`rounded-xl border border-slate-200 bg-white p-4 shadow-sm${
-        isDragging ? " opacity-50" : ""
-      }`}
+      className={`rounded-xl border border-slate-200 bg-white p-4 shadow-sm${isDragging ? " opacity-50" : ""
+        }`}
       style={{ cursor: "move" }}
     >
       <div className=" mb-2 flex items-start justify-between">
@@ -140,7 +139,7 @@ export default function CRMPage() {
     async function fetchData() {
       const [leadsData, funnelData] = await Promise.all([
         listLeads(),
-        get_prospecFunnels(),
+        get_stages(),
       ]);
 
       setLeads(leadsData);
@@ -149,7 +148,7 @@ export default function CRMPage() {
       try {
         const name = localStorage.getItem("userName");
         if (name) setUserName(name);
-      } catch (e) {}
+      } catch (e) { }
     }
     fetchData();
   }, []);
@@ -160,12 +159,12 @@ export default function CRMPage() {
       .filter((l) =>
         search
           ? l.name.toLowerCase().includes(search.toLowerCase()) ||
-            (l.origin || "").toLowerCase().includes(search.toLowerCase())
+          (l.origin || "").toLowerCase().includes(search.toLowerCase())
           : true
       )
       .forEach((l) => {
-        if (by[l.prospec_funnel_id]) {
-          by[l.prospec_funnel_id].push(l);
+        if (by[l.stage_id]) {
+          by[l.stage_id].push(l);
         }
       });
     return by;
@@ -201,11 +200,10 @@ export default function CRMPage() {
               {["Dashboard", "CRM"].map((item, idx) => (
                 <a
                   key={item}
-                  className={`flex items-center justify-between rounded-lg px-3 py-2 ${
-                    item === "CRM"
+                  className={`flex items-center justify-between rounded-lg px-3 py-2 ${item === "CRM"
                       ? "bg-blue-50 font-medium text-blue-700"
                       : "text-slate-600 hover:bg-slate-50"
-                  }`}
+                    }`}
                   href="#"
                 >
                   <span className="truncate">{item}</span>
@@ -245,7 +243,7 @@ export default function CRMPage() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <LeadButton windowTitle="Nova Oportunidade" />
+                <LeadButton windowTitle="Nova Etapa" />
                 <LeadButton windowTitle="Novo Lead" />
               </div>
             </div>
@@ -295,21 +293,19 @@ export default function CRMPage() {
                 <div className="ml-auto flex items-center gap-2">
                   <button
                     onClick={() => handleFunnelSelection("prospec")}
-                    className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                      selectedFunnel === "prospec"
+                    className={`rounded-full px-3 py-1.5 text-xs font-semibold ${selectedFunnel === "prospec"
                         ? "bg-blue-600 text-white"
                         : "text-slate-500 hover:bg-slate-100"
-                    }`}
+                      }`}
                   >
                     Funil de Prospecção
                   </button>
                   <button
                     onClick={() => handleFunnelSelection("expansion")}
-                    className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                      selectedFunnel === "expansion"
+                    className={`rounded-full px-3 py-1.5 text-xs font-semibold ${selectedFunnel === "expansion"
                         ? "bg-blue-600 text-white"
                         : "text-slate-500 hover:bg-slate-100"
-                    }`}
+                      }`}
                   >
                     Funil de Expansão
                   </button>

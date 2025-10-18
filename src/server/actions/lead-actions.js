@@ -30,7 +30,7 @@ function stageOrDefault(v) {
 // ----------------- Ações -----------------
 export async function listLeads() {
   const leads = await prisma.lead.findMany({
-    orderBy: [{ prospec_funnel_id: "asc" }, { createdAt: "desc" }],
+    orderBy: [{ stage_id: "asc" }, { createdAt: "desc" }],
     include: { owner: { select: { id: true, name: true, email: true } } },
   });
   return leads.map(serializeLead); //Retorna dados serializado, estava dando erro ao carregar a página
@@ -41,8 +41,7 @@ export async function listLeads() {
  * - um objeto JS com os campos
  * - ou um FormData direto do <form action={createLead}>
  */
-export async function createLead(payload) { //Esta função não está servindo apenas para criar, mas também ATUALIZAR o lead
-  // Transforma FormData ou objeto simples em objeto plano
+export async function createLead(payload) {
   const data =
     payload instanceof FormData
       ? Object.fromEntries(payload.entries())
@@ -50,7 +49,7 @@ export async function createLead(payload) { //Esta função não está servindo 
 
   console.log("Dados recebidos:", data);
 
-const leadData = {
+  const leadData = {
     name: String(data.name || "").trim(),
     company: opt(data.company),
     email: opt(data.email?.toLowerCase()),
@@ -60,27 +59,31 @@ const leadData = {
     score: toInt(data.score),
     notes: opt(data.notes),
     value: toDecimal(data.value),
-    ownerId: toInt(data.ownerId),
-    prospec_funnel_id: toInt(data.stageId),
-    stage: stageOrDefault(data.stage), // Default: LEAD
+    stage_id: toInt(data.stageId),
   };
 
-  const id = toInt(data.id); // pode vir como string do formulário
+  const ownerId = toInt(data.ownerId);
+  if (ownerId) {
+    leadData.owner = {
+      connect: { id: ownerId }
+    };
+  }
+
+  const id = toInt(data.id);
 
   let result;
 
   if (id) {
-    // Faz UPDATE se o ID for válido
     result = await prisma.lead.update({
       where: { id },
       data: leadData,
     });
-    // console.log("Lead atualizado:", result);
-    } else {
-    // Faz CREATE se não houver ID
-      result = await prisma.lead.create({ data: leadData });
-      // console.log("Lead criado:", result);
-    }
+  } else {
+    result = await prisma.lead.create({
+      data: leadData,
+    });
+  }
+
   return { ok: true, leadData };
 }
 
@@ -99,7 +102,7 @@ function serializeLead(lead) {
     value: lead.value?.toNumber?.() ?? null,
     ownerId: lead.ownerId,
     stage: lead.stage,
-    prospec_funnel_id: lead.prospec_funnel_id,
+    stage_id: lead.stage_id,
     createdAt: lead.createdAt.toISOString(),
     updatedAt: lead.updatedAt.toISOString(),
   };
@@ -108,14 +111,14 @@ function serializeLead(lead) {
 export async function moveLead(leadId, nextFunnelId) {
   return prisma.lead.update({
     where: { id: Number(leadId) },
-    data: { prospec_funnel_id: Number(nextFunnelId) },
+    data: { stage_id: Number(nextFunnelId) },
   });
 }
 
 export async function deleteLead(leadId) {
   return prisma.lead.update({
     where: { id: Number(leadId) },
-    data: { prospec_funnel_id: 0 },
+    data: { stage_id: 0 },
   });
 }
 
@@ -141,9 +144,9 @@ export async function updateLead(leadId, partial = {}) {
   });
 }
 
-export async function get_prospecFunnels() {
+export async function get_stages() {
   try {
-    const prospec_funnels = await prisma.prospecFunnel.findMany({
+    const prospec_funnels = await prisma.stage.findMany({
       where: {
         id: { not: 0 } //ignora coluna de exluidos/arquivados
       },

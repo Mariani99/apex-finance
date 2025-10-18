@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 // import { createLead } from "@/server/actions/lead-actions";
 import { useFormStatus } from "react-dom";
 import { LeadForm } from "./LeadForm";
+import { ColumnForm } from "./ColumnForm.jsx";
 // import { OpportunityForm } from "./OpportunityForm";
 
 /* export function SubmitButtons() { //SEM UTILIZACAO. COMENTADO E NAO REMOVIDO POIS NAO SABEMOS COMO SERÁ NO FUTURO
@@ -30,14 +31,14 @@ import { LeadForm } from "./LeadForm";
   );
 } */
 
-export default function LeadButton( { windowTitle, data = null }) { //lead button também servirá para o botão de nova oportunidade
+export default function LeadButton({ windowTitle, data = null }) { //lead button também servirá para o botão de nova oportunidade
 
   let content;
 
-  if (windowTitle === "Novo Lead" || windowTitle === "Editar Lead" ) { //
-    content = <LeadForm title ={ windowTitle } data ={ data }/>;
-  } else if (windowTitle === "Nova Oportunidade" || windowTitle === "Editar Oportunidade") {
-    //content = <OpportunityForm title ={ windowTitle } data ={ data }/>; APONTAR PARA O FORMULARIO NOVO
+  if (windowTitle === "Novo Lead" || windowTitle === "Editar Lead") { //
+    content = <LeadForm title={windowTitle} data={data} />;
+  } else if (windowTitle === "Nova Etapa") {
+    content = <ColumnForm title={windowTitle} data={data} />;
   }
 
   return <Dialog>{content}</Dialog>;

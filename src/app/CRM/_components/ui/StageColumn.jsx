@@ -11,7 +11,7 @@ export default function StageColumn({
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "LEAD_CARD",
     drop: async (item) => {
-      if (item.prospec_funnel_id !== col.id) {
+      if (item.stage_id !== col.id) {
         await moveLead(item.id, col.id);
         await refresh();
       }
@@ -25,12 +25,11 @@ export default function StageColumn({
   return (
     <div
       ref={drop}
-      className={`rounded-2xl border border-slate-200 bg-[#F6F8FA] p-3 shadow-sm transition-all  ${
-        isOver && canDrop ? "ring-2 ring-blue-400" : ""
-      }`}
+      className={`rounded-2xl border border-slate-200 bg-[#F6F8FA] p-3 shadow-sm transition-all  ${isOver && canDrop ? "ring-2 ring-blue-400" : ""
+        }`}
     >
       <div className={`mb-3 border-b-2 ${col.color} pb-2 text-sm font-semibold text-slate-600`}>
-      {col.name} {/* titulo coluna */}
+        {col.name} {/* titulo coluna */}
       </div>
       <div className="space-y-3 max-h-[300px] md:max-h-[510px] overflow-y-auto custom-scrollbar">
         {(leads || []).map((lead) => (

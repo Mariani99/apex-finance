@@ -6,17 +6,20 @@ const globalForPrisma = globalThis;
 const prisma = globalForPrisma.prisma || new PrismaClient();
 if (!globalForPrisma.prisma) globalForPrisma.prisma = prisma;
 
-export async function get_prospecFunnels() { //pega lista de etapas do funil
+export async function get_stages(type = null) { //pega lista de etapas do funil
   try {
-    const prospec_funnels = await prisma.prospecFunnel.findMany({
-      orderBy: [{ id: "asc" }],
+    const stages = await prisma.stage.findMany({
+      where: {
+        funnel_type_id: type/* ,
+        funnel_type_id: { not: 0} */
+      },
+      orderBy: [{ position: "asc" }],
       select: {
         id: true,
         name: true
       }
     });
-
-    return prospec_funnels;
+    return stages;
   } catch (error) {
     console.error("Erro ao buscar funis:", error);
     return [];
