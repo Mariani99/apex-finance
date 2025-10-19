@@ -284,9 +284,9 @@ export default function CRMPage() {
             <div className="space-y-6 h-[655px]">
               <section className="h-[70px] flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm ">
                 {[
-                  { label: "Todos os vendedores" },
+                  /* { label: "Todos os vendedores" },
                   { label: "Todas as origens" },
-                  { label: "Últimos 30 dias" },
+                  { label: "Últimos 30 dias" }, */
                 ].map((f) => (
                   <button
                     key={f.label}

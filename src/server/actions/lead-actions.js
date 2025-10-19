@@ -61,8 +61,6 @@ export async function createLead(payload) {
     notes: opt(data.notes),
     value: toDecimal(data.value),
     stage_id: toInt(data.stageId),
-
-    // ✅ Campos extras:
     opportunityTitle: opt(data.opportunityTitle),
     estimatedValue: toDecimal(data.estimatedValue),
     probability: toInt(data.probability),
@@ -97,38 +95,46 @@ export async function createLead(payload) {
 }
 
 function serializeLead(lead) {
-  //Serializa os dados que estavam dando erro ao carregar a página
   return {
     id: lead.id,
     name: lead.name,
+    origin: lead.origin,
     company: lead.company,
     email: lead.email,
-    phone: lead.phone,
     jobTitle: lead.jobTitle,
-    origin: lead.origin,
-    score: lead.score,
     notes: lead.notes,
-    value: lead.value?.toNumber?.() ?? null,
+    phone: lead.phone,
+    paymentCondition: lead.paymentCondition,
+    opportunityTitle: lead.opportunityTitle,
+    costCenter: lead.costCenter,
     ownerId: lead.ownerId,
-    stage: lead.stage,
     stage_id: lead.stage_id,
+    score: lead.score,
+    probability: lead.probability,
+    value: lead.value?.toNumber?.() ?? null,            // <- Decimal convert
+    estimatedValue: lead.estimatedValue?.toNumber?.() ?? null,  // <- Decimal convert
+    expectedDate: lead.expectedDate ? lead.expectedDate.toISOString() : null, // Date convert
     createdAt: lead.createdAt.toISOString(),
     updatedAt: lead.updatedAt.toISOString(),
   };
 }
 
+
+
 export async function moveLead(leadId, nextFunnelId) {
-  return prisma.lead.update({
+  const lead = await prisma.lead.update({
     where: { id: Number(leadId) },
     data: { stage_id: Number(nextFunnelId) },
   });
+  return serializeLead(lead);
 }
 
 export async function deleteLead(leadId) {
-  return prisma.lead.update({
+  const lead = await prisma.lead.update({
     where: { id: Number(leadId) },
     data: { stage_id: 0 },
   });
+  return serializeLead(lead);
 }
 
 export async function updateLead(leadId, partial = {}) {

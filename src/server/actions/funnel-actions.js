@@ -40,7 +40,6 @@ export async function getStagesTypeId(typeId = null) { //pega lista de etapas do
                 name: true
             }
         });
-        console.log("stages " + Stages)
         return stages;
     } catch (error) {
         console.error("Erro ao buscar funis:", error);
