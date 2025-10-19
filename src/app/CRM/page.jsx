@@ -10,10 +10,10 @@ import {
   listLeads,
   createLead,
   moveLead,
-  deleteLead,
-  get_stages,
+  deleteLead
 } from "../../server/actions/lead-actions";
 
+import { get_stages } from "@/server/actions/funnel-actions"
 import LeadButton from "./_components/ui/LeadButton";
 
 import {
@@ -74,7 +74,7 @@ export function LeadCard({ lead, onDelete }) {
 
       <div className="mb-3 text-xs text-slate-500">
         {new Date(lead.updatedAt).getDate() +
-          " deVERIFICAR ESSE CAMPO!!! " +
+          " de " +
           new Date(lead.updatedAt)
             .toLocaleDateString("pt-BR", { month: "long" })
             .replace(/^./, (str) => str.toUpperCase())}
@@ -197,13 +197,13 @@ export default function CRMPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Pesquisar…"
+                placeholder="Pesquisar cards"
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm outline-none placeholder:text-slate-400 focus:bg-white"
               />
             </div>
 
             <nav className="space-y-1 text-sm">
-              {["Dashboard", "CRM"].map((item, idx) => (
+              {["Dashboard (em breve)", "CRM"].map((item, idx) => (
                 <a
                   key={item}
                   className={`flex items-center justify-between rounded-lg px-3 py-2 ${item === "CRM"
@@ -224,7 +224,7 @@ export default function CRMPage() {
               <div className="mt-6 text-xs font-semibold uppercase text-slate-400">
                 Configurações
               </div>
-              {["Editor DRE/KPIs", "Usuários"].map((i) => (
+              {["Editor DRE/KPIs (em breve)", "Usuários (em breve)"].map((i) => (
                 <a
                   key={i}
                   className="mt-1 block rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-50"
@@ -337,7 +337,7 @@ export default function CRMPage() {
                         />
                       ))
                     ) : (
-                      <p>Carregando colunas...</p>
+                      <p>Colunas não encontradas ou não existentes</p>
                     )}
                   </div>
                 )}
@@ -361,7 +361,7 @@ export default function CRMPage() {
                         />
                       ))
                     ) : (
-                      <p>Carregando colunas...</p>
+                      <p>Colunas não encontradas ou não existentes</p>
                     )}
                   </div>
                 )}

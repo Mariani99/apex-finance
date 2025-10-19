@@ -2,32 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input, Select } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Plus } from "@phosphor-icons/react";
+import { getFunnelType, createColumn } from "@/server/actions/funnel-actions";
 
 // Função fictícia para simular o envio da coluna para o backend
-const addColumnToDatabase = async (columnData) => {
-  try {
-    const response = await fetch("/api/columns", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(columnData),
-    });
-    const result = await response.json();
-    if (response.ok) {
-      return result;
-    } else {
-      throw new Error(result.message || "Erro ao adicionar coluna");
-    }
-  } catch (error) {
-    console.error("Erro ao adicionar coluna:", error);
-    throw error;
-  }
-};
+
 
 export function ColumnForm() {
   const [name, setName] = useState("");
@@ -36,6 +17,21 @@ export function ColumnForm() {
   const [isOpen, setIsOpen] = useState(false); // Controle do estado do dialog
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
+  const [selectedFunnelTypeId, setSelectedFunnelTypeId] = useState(""); // Para armazenar o tipo de funil selecionado
+  const [funnelTypes, setFunnelTypes] = useState([]); // Para armazenar os tipos de funil
+  useEffect(() => {
+    const loadFunnelTypes = async () => {  // Nova função para carregar os tipos de funil
+      try {
+        const funnelList = await getFunnelType(); // Carrega os tipos de funil
+        setFunnelTypes(funnelList); // Armazena os tipos de funil
+        return funnelList;
+      } catch (error) {
+        console.error("Erro ao carregar tipos de funil:", error);
+        return [];
+      }
+    };
+    loadFunnelTypes();
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -43,10 +39,10 @@ export function ColumnForm() {
     setMessage("");
     setIsError(false);
 
-    const columnData = { name, description };
+    const columnData = { name, funnelTypeId: selectedFunnelTypeId, };
 
     try {
-      const result = await addColumnToDatabase(columnData);
+      const result = await createColumn(columnData);
       setMessage("Coluna adicionada com sucesso!");
       setIsError(false);
       setName(""); // Limpa os campos
@@ -89,16 +85,24 @@ export function ColumnForm() {
           </div>
 
           {/* Descrição */}
-          <div className="mb-4">
-            <Label htmlFor="description">Descrição</Label>
-            <Input
-              type="text"
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+          <div className="grid gap-2">
+            <Label htmlFor="stage-1">Tipo de funil</Label>
+            <Select
+              id="stage-1"
+              name="funnelTypeId"
+              value={selectedFunnelTypeId}
+              onChange={(e) => {
+                setSelectedFunnelTypeId(e.target.value); // Atualize o tipo de funil selecionado
+              }}
               required
-              className="mt-1"
-            />
+            >
+              <option value="">Selecione um tipo de funil</option>
+              {funnelTypes.map((funnel) => (
+                <option key={funnel.id} value={funnel.id}>
+                  {funnel.name}
+                </option>
+              ))}
+            </Select>
           </div>
 
           {/* Mensagem de Status */}

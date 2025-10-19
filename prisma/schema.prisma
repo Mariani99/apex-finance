@@ -15,31 +15,36 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  leads     Lead[]   @relation("UserLeads")  // Relacionamento com leads, usando o nome explícito "UserLeads"
+  leads     Lead[]   @relation("UserLeads")
 
   @@map("user")
 }
 
 /// Leads do CRM
 model Lead {
-  id        Int      @id @default(autoincrement())
-  name      String
-  origin    String?
-  value     Decimal? @db.Decimal(12, 2)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ownerId   Int?     // Campo escalar (Int?) para armazenar o ID do User
-  company   String?
-  email     String?
-  jobTitle  String?
-  notes     String?
-  phone     String?  @db.VarChar(30)
-  score     Int?     @db.SmallInt
-  stage_id  Int?
+  id               Int       @id @default(autoincrement())
+  name             String
+  origin           String?
+  value            Decimal?  @db.Decimal(12, 2)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  ownerId          Int?
+  company          String?
+  email            String?
+  jobTitle         String?
+  notes            String?
+  phone            String?   @db.VarChar(30)
+  score            Int?      @db.SmallInt
+  stage_id         Int?
+  opportunityTitle String?   @db.VarChar
+  estimatedValue   Decimal?  @db.Decimal(12, 2)
+  probability      Int?
+  expectedDate     DateTime? @db.Date
+  paymentCondition String?
+  costCenter       String?   @db.VarChar
+  owner            User?     @relation("UserLeads", fields: [ownerId], references: [id])
 
-  owner     User?    @relation("UserLeads", fields: [ownerId], references: [id])  // Relação entre Lead e User
-
-  @@index([ownerId])  // Índice no campo escalar `ownerId`
+  @@index([ownerId])
   @@index([email])
   @@index([phone])
   @@map("lead")
@@ -53,7 +58,7 @@ model funnel_type {
 model stage {
   id             Int    @id(map: "prospec_funnel_pkey") @default(autoincrement())
   name           String @db.VarChar(255)
-  position       Int    @unique(map: "prospec_funnel_unique") @db.SmallInt
+  position       Int?   @unique(map: "prospec_funnel_unique") @default(autoincrement()) @db.SmallInt
   funnel_type_id Int    @db.SmallInt
 }
 

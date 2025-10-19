@@ -1,7 +1,8 @@
 "use client";
 
 import { createLead } from "@/server/actions/lead-actions";
-import { getUsers, getFunnelType, getStagesTypeId } from "@/server/actions/user-actions";
+import { getUsers } from "@/server/actions/user-actions";
+import { getFunnelType, getStagesTypeId } from "@/server/actions/funnel-actions";
 import {
   Dialog,
   DialogContent,
@@ -189,156 +190,230 @@ export function LeadForm({ title, data = null }) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div>
-            <div className="grid grid-cols-2 gap-4">
-              {title !== "Novo Lead" && (
+          <div className="max-h-[70vh] overflow-y-auto pr-2">
+            <div>
+              <div className="grid grid-cols-2 gap-4">
+                {title !== "Novo Lead" && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="id-1">ID</Label>
+                    <Input
+                      id="id-1"
+                      name="id"
+                      required
+                      defaultValue={data?.id ?? ""}
+                      readOnly
+                    />
+                  </div>
+                )}
+
                 <div className="grid gap-2">
-                  <Label htmlFor="id-1">ID</Label>
+                  <Label htmlFor="name-1">Nome</Label>
                   <Input
-                    id="id-1"
-                    name="id"
+                    id="name-1"
+                    name="name"
                     required
-                    defaultValue={data?.id ?? ""}
-                    readOnly
+                    defaultValue={data && data.name !== null ? data.name : ""}
                   />
                 </div>
-              )}
 
-              <div className="grid gap-2">
-                <Label htmlFor="name-1">Nome</Label>
-                <Input
-                  id="name-1"
-                  name="name"
-                  required
-                  defaultValue={data && data.name !== null ? data.name : ""}
-                />
-              </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="company-1">Empresa</Label>
+                  <Input
+                    id="company-1"
+                    name="company"
+                    defaultValue={
+                      data && data.company !== null ? data.company : ""
+                    }
+                  />
+                </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="company-1">Empresa</Label>
-                <Input
-                  id="company-1"
-                  name="company"
-                  defaultValue={
-                    data && data.company !== null ? data.company : ""
-                  }
-                />
-              </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="email-1">Email</Label>
+                  <Input
+                    id="email-1"
+                    name="email"
+                    type="email"
+                    defaultValue={data && data.email !== null ? data.email : ""}
+                  />
+                </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="email-1">Email</Label>
-                <Input
-                  id="email-1"
-                  name="email"
-                  type="email"
-                  defaultValue={data && data.email !== null ? data.email : ""}
-                />
-              </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="phone-1">Telefone</Label>
+                  <Input
+                    id="phone-1"
+                    name="phone"
+                    defaultValue={data && data.phone !== null ? data.phone : ""}
+                  />
+                </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="phone-1">Telefone</Label>
-                <Input
-                  id="phone-1"
-                  name="phone"
-                  defaultValue={data && data.phone !== null ? data.phone : ""}
-                />
-              </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="jobTitle-1">Cargo</Label>
+                  <Input
+                    id="jobTitle-1"
+                    name="jobTitle"
+                    defaultValue={
+                      data && data.jobTitle !== null ? data.jobTitle : ""
+                    }
+                  />
+                </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="jobTitle-1">Cargo</Label>
-                <Input
-                  id="jobTitle-1"
-                  name="jobTitle"
-                  defaultValue={
-                    data && data.jobTitle !== null ? data.jobTitle : ""
-                  }
-                />
-              </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="origin-1">Origem</Label>
+                  <Input
+                    id="origin-1"
+                    name="origin"
+                    placeholder="Site, Anúncio, Indicação..."
+                    defaultValue={data && data.origin !== null ? data.origin : ""}
+                  />
+                </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="origin-1">Origem</Label>
-                <Input
-                  id="origin-1"
-                  name="origin"
-                  placeholder="Site, Anúncio, Indicação..."
-                  defaultValue={data && data.origin !== null ? data.origin : ""}
-                />
-              </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="score-1">Score</Label>
+                  <Input
+                    id="score-1"
+                    name="score"
+                    type="number"
+                    min={0}
+                    max={100}
+                    defaultValue={data && data.score !== null ? data.score : ""}
+                  />
+                </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="score-1">Score</Label>
-                <Input
-                  id="score-1"
-                  name="score"
-                  type="number"
-                  min={0}
-                  max={100}
-                  defaultValue={data && data.score !== null ? data.score : ""}
-                />
-              </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="ownerId-1">Vendedor Responsável</Label>
+                  <Select
+                    id="ownerId-1"
+                    name="ownerId"
+                    value={selectedOwnerId}
+                    onChange={(e) => setSelectedOwnerId(e.target.value)}
+                  >
+                    <option value="">Selecione um vendedor (opcional)</option>
+                    {users.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} ({user.email})
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="stage-1">Tipo de funil</Label>
+                  <Select
+                    id="stage-1"
+                    name="funnelTypeId"
+                    value={selectedFunnelTypeId}
+                    onChange={(e) => {
+                      setSelectedFunnelTypeId(e.target.value); // Atualize o tipo de funil selecionado
+                      setAvailableStages(stagesByFunnel[e.target.value] || []); // Carregue as etapas desse tipo de funil
+                    }}
+                    required
+                  >
+                    <option value="">Selecione um tipo de funil</option>
+                    {funnelTypes.map((funnel) => (
+                      <option key={funnel.id} value={funnel.id}>
+                        {funnel.name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="ownerId-1">Vendedor Responsável</Label>
-                <Select
-                  id="ownerId-1"
-                  name="ownerId"
-                  value={selectedOwnerId}
-                  onChange={(e) => setSelectedOwnerId(e.target.value)}
-                >
-                  <option value="">Selecione um vendedor (opcional)</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name} ({user.email})
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="stage-1">Tipo de funil</Label>
-                <Select
-                  id="stage-1"
-                  name="funnelTypeId"
-                  value={selectedFunnelTypeId}
-                  onChange={(e) => {
-                    setSelectedFunnelTypeId(e.target.value); // Atualize o tipo de funil selecionado
-                    setAvailableStages(stagesByFunnel[e.target.value] || []); // Carregue as etapas desse tipo de funil
-                  }}
-                  required
-                >
-                  <option value="">Selecione um tipo de funil</option>
-                  {funnelTypes.map((funnel) => (
-                    <option key={funnel.id} value={funnel.id}>
-                      {funnel.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="stageId">Etapa do funil</Label>
+                  <Select
+                    id="stageId"
+                    name="stageId"
+                    value={selectedStageId}
+                    onChange={(e) => setSelectedStageId(e.target.value)}
+                    required
+                  >
+                    <option value="">Selecione uma etapa</option>
+                    {availableStages.map((stage) => (
+                      <option key={stage.id} value={stage.id}>
+                        {stage.name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="opportunityTitle">Título da Oportunidade</Label>
+                  <Input
+                    id="opportunityTitle"
+                    name="opportunityTitle"
+                    defaultValue={data?.opportunityTitle ?? ""}
+                    required
+                  />
+                </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="stageId">Etapa do funil</Label>
-                <Select
-                  id="stageId"
-                  name="stageId"
-                  value={selectedStageId}
-                  onChange={(e) => setSelectedStageId(e.target.value)}
-                  required
-                >
-                  <option value="">Selecione uma etapa</option>
-                  {availableStages.map((stage) => (
-                    <option key={stage.id} value={stage.id}>
-                      {stage.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div className="md:col-span-2 flex flex-col gap-2">
-                <Label htmlFor="notes-1">Observações</Label>
-                <textarea
-                  id="notes-1"
-                  name="notes"
-                  className="flex min-h-[80px] max-h-[30vh] w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background resize-y"
-                  defaultValue={data && data.notes !== null ? data.notes : ""}
-                />
+                <div className="grid gap-2">
+                  <Label htmlFor="estimatedValue">Valor Estimado (R$)</Label>
+                  <Input
+                    id="estimatedValue"
+                    name="estimatedValue"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    defaultValue={data?.estimatedValue ?? 0}
+                    required
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="probability">Probabilidade (%)</Label>
+                  <Input
+                    id="probability"
+                    name="probability"
+                    type="number"
+                    min={1}
+                    max={100}
+                    defaultValue={data?.probability ?? ""}
+                    required
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="expectedDate">Data Prevista</Label>
+                  <Input
+                    id="expectedDate"
+                    name="expectedDate"
+                    type="date"
+                    defaultValue={data?.expectedDate ?? ""}
+                    required
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="paymentCondition">Condição de Pagamento</Label>
+                  <Input
+                    id="paymentCondition"
+                    name="paymentCondition"
+                    defaultValue={data?.paymentCondition ?? ""}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="costCenter">Centro de Custo</Label>
+                  <Select
+                    id="costCenter"
+                    name="costCenter"
+                    defaultValue={data?.costCenter ?? ""}
+                    required
+                  >
+                    <option value="">Selecione um centro de custo</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Financeiro">Financeiro</option>
+                    <option value="Administrativo">Administrativo</option>
+                    <option value="Vendas">Vendas</option>
+                    <option value="Operações">Operações</option>
+                  </Select>
+                </div>
+                <div className="md:col-span-2 flex flex-col gap-2">
+                  <Label htmlFor="notes-1">Observações</Label>
+                  <textarea
+                    id="notes-1"
+                    name="notes"
+                    className="flex min-h-[80px] max-h-[30vh] w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background resize-y"
+                    defaultValue={data && data.notes !== null ? data.notes : ""}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -358,6 +433,6 @@ export function LeadForm({ title, data = null }) {
           </DialogFooter>
         </form>
       </DialogContent>
-    </Dialog>
+    </Dialog >
   );
 }

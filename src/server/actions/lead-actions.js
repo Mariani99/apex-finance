@@ -48,7 +48,7 @@ export async function createLead(payload) {
       ? Object.fromEntries(payload.entries())
       : payload ?? {};
 
-  console.log("Dados recebidos:", data);
+  // console.log("Dados recebidos:", data);
 
   const leadData = {
     name: String(data.name || "").trim(),
@@ -61,12 +61,20 @@ export async function createLead(payload) {
     notes: opt(data.notes),
     value: toDecimal(data.value),
     stage_id: toInt(data.stageId),
+
+    // ✅ Campos extras:
+    opportunityTitle: opt(data.opportunityTitle),
+    estimatedValue: toDecimal(data.estimatedValue),
+    probability: toInt(data.probability),
+    expectedDate: data.expectedDate ? new Date(data.expectedDate) : null,
+    paymentCondition: opt(data.paymentCondition),
+    costCenter: opt(data.costCenter),
   };
 
   const ownerId = toInt(data.ownerId);
   if (ownerId) {
     leadData.owner = {
-      connect: { id: ownerId }
+      connect: { id: ownerId },
     };
   }
 
@@ -143,25 +151,4 @@ export async function updateLead(leadId, partial = {}) {
     where: { id: Number(leadId) },
     data,
   });
-}
-
-export async function get_stages(funneltype = null) {
-  try {
-    const prospec_funnels = await prisma.stage.findMany({
-      where: {
-        id: { not: 0 }, //ignora coluna de exluidos/arquivados
-        funnel_type_id: funneltype
-      },
-      orderBy: [{ id: "asc" }],
-      select: {
-        id: true,
-        name: true
-      }
-    });
-
-    return prospec_funnels;
-  } catch (error) {
-    console.error("Erro ao buscar funis:", error);
-    return [];
-  }
 }
